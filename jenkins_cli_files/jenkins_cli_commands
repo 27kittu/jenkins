@@ -1,0 +1,3 @@
+./jen list-jobs		listing all jobs
+./jen get-job <job>	stdin the xml conf file of job
+./jen update-job < xml fetch the conf text to update job

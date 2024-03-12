@@ -1,0 +1,5 @@
+#!/bin/bash
+
+if [[ $2 = none ]]; then $2=none; fi
+
+java -jar /home/cosmo/Desktop/jenkins-cli.jar -auth zeus:zeus@thunder -s http://54.197.122.39:8080/ $1 $2 

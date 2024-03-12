@@ -1,0 +1,81 @@
+pipeline {
+ agent any
+ /*triggers {
+   pollSCM('H 23 * * *')
+ }*/
+ environment {
+    DB_URL = credentials('test_db_host')
+    DB_USER  = credentials('test_dba_user')
+    DB_PWD = credentials('test_dba_pwd')
+    KUBE_CNF = ''
+    DEPLOY_ENV = "${params.environment}"
+    }
+ tools {
+  maven 'M2_HOME'
+ }
+    stages {
+        stage('set eks'){
+            steps{
+                 script {
+                    if("${DEPLOY_ENV}" == 'Dev'){
+                        def KUBE_CNF = 'arn:aws:eks:us-east-1:759023010504:cluster/Eks-Dev'
+                    } else if("${DEPLOY_ENV}" == 'Qa'){
+                        def KUBE_CNF = 'arn:aws:eks:us-east-1:759023010504:cluster/QA-Eks'
+                    }else if("${DEPLOY_ENV}" == 'Pre-Prod'){
+                       def KUBE_CNF = 'arn:aws:eks:us-east-1:759023010504:cluster/Pre-Prod-Eks'
+                    }
+                 }
+            }
+        }
+        stage(pull){
+            steps{
+            git branch: 'master', credentialsId: '2222-a160-4999-beb0-3f8f0fe7bfe6', url: 'https://bitbucket.org/testdev/test-test.git'
+        }
+        }
+        stage('aws login'){
+            steps{
+                sh "export AWS_DEFAULT_PROFILE=default"
+                sh "set AWS_DEFAULT_PROFILE=default"
+            }
+        }
+   stage('DB_creation'){
+        steps {
+            sh '''
+     mysql -u ${DB_USER} -p${DB_PWD} -h ${DB_URL}  -e "create database test_$tenantid; CREATE USER 'dba_$tenantid'@'%'IDENTIFIED BY 'Au6aDBA'; GRANT ALL PRIVILEGES ON test_$tenantid.* TO 'dba_$tenantid'@'%';FLUSH PRIVILEGES;"
+     '''
+        }
+    }
+    stage('create-namespace'){
+        steps{
+            sh '''  
+        export KUBECONFIG=$KUBECONFIG:$HOME/."${DEPLOY_ENV}"kube/config
+        export PATH=$HOME/bin:$PATH 
+        kubectl config use-context "${KUBE_CNF}"
+        kubectl create namespace test-$tenantid
+        '''
+        }
+    }
+    stage ('store-secrets'){
+        steps{
+            sh '''
+        export KUBECONFIG=$KUBECONFIG:$HOME/."${DEPLOY_ENV}"kube/config
+        export PATH=$HOME/bin:$PATH 
+        kubectl config use-context "${KUBE_CNF}"
+        kubectl create secret generic sales-tracker --from-literal=url=jdbc:mysql://${DB_URL}:3306/test_$tenantid?createDatabaseIfNotExist=true --from-literal=username=dba_$tenantid --from-literal=password=Auwwwwwwww6aDBA -n test-$tenantid
+        '''
+        }
+    }
+    stage('deploy'){
+        steps{
+          sh ''' 
+        export KUBECONFIG=$KUBECONFIG:$HOME/."${DEPLOY_ENV}"kube/config
+        export PATH=$HOME/bin:$PATH 
+        kubectl config use-context "${KUBE_CNF}"
+            /var/lib/jenkins/bin/helm install test --namespace test-$tenantid /var/lib/jenkins/workspace/${JOB_NAME}/helm/
+        sleep 60s
+        kubectl get svc -n test-$tenantid '''
+        }
+    }
+    }
+}
+

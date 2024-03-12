@@ -1,0 +1,55 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@1360.vc6700e3136f5">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2150.v4cfd8916915c"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2150.v4cfd8916915c">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description/>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@3806.va_3a_6988277b_2">
+    <script>pipeline{
+  agent any
+  tools {
+    git 'Default'
+    maven 'maven'
+  }
+  stages {
+    stage('getCode') {
+      steps {
+        git credentialsId: 'trainyoucred', url: 'https://github.com/trainyou/java-web-app-docker.git'
+      }
+    }
+    stage('testPackage') {
+      steps {
+        sh 'mvn clean test'
+      }
+    }
+    stage('buildPackage'){
+      steps{
+        sh 'mvn clean package'
+      }
+    }
+    stage('installPackage'){
+      steps{
+        sh 'mvn clean install'
+      }
+    }
+    stage('deployPackage'){
+      steps{
+        sh 'mvn clean deploy'
+      }
+    }
+  }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
