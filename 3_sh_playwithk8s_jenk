@@ -2,4 +2,4 @@
 
 docker pull jenkins/jenkins
 docker run -d --name jenkins -p 80:8080 jenkins/jenkins
-docker exec jenkins sh -c 'cat /var/jenkins_home/secrets/initialAdminPassword'
+sleep 10 && docker exec jenkins sh -c 'cat /var/jenkins_home/secrets/initialAdminPassword'
