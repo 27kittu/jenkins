@@ -1,3 +1,7 @@
-./jen list-jobs		listing all jobs
-./jen get-job <job>	stdin the xml conf file of job
-./jen update-job < xml fetch the conf text to update job
+#Inorder to use only 'jen' as normal command add it to 'PATH'
+# export PATH=$PATH:dir_jen_present
+# So you can invoke using 'jen'
+
+jen list-jobs		listing all jobs
+jen get-job <job>	stdin the xml conf file of job
+jen update-job < xml fetch the conf text to update job
